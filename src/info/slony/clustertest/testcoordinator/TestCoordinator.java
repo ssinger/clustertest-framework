@@ -39,6 +39,10 @@ public class TestCoordinator {
 			    PropertyConfigurator.configure(log4jConf);
 			}			 
 			String outputDirectoryName = props.getProperty("output.directory");
+			if(outputDirectoryName == null) {
+				System.err.println("properties file does not contain output.directory");
+				return ;
+			}
 			File outputDirectory = new File(outputDirectoryName);
 			outputDirectory.mkdirs();
 			TestResult results = new TestResult("test", outputDirectoryName);
