@@ -45,7 +45,7 @@ public class PsqlCommandExec extends PgCommand  {
 	}
 
 	
-	protected ShellExecScript.CommandOptions getExecutablePath() {
+	protected CommandOptions getExecutablePath() {
 		ArrayList<String> path = new ArrayList<String>();
 		String tmp = properties.getProperty("database." + logicalDbName + ".pgsql.path");
 		if(tmp==null) {
@@ -63,7 +63,7 @@ public class PsqlCommandExec extends PgCommand  {
 			path.add("-f");
 			path.add(SQLFile.getAbsolutePath());			
 		}
-		ShellExecScript.CommandOptions options = getPgCommandOptions(true);
+		CommandOptions options = getPgCommandOptions(true);
 		for(int idx = 0; idx < options.commandOptions.length; idx++) {
 			path.add(options.commandOptions[idx]);
 		}	

@@ -10,6 +10,16 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+/**
+ * 
+ * The PgCommand class is an abstract base class that represents
+ * a postgresql command program (ie psql or pg_dump).
+ *
+ * This class provides support for passing properites (hostname, database name,port...)
+ * from the properties object to the postgresql command program being invoked.
+ *
+ * This class includes the ability to write a .pgpass file
+ */
 public abstract class PgCommand extends ShellExecScript {
 	
 	protected Properties properties;
@@ -29,12 +39,12 @@ public abstract class PgCommand extends ShellExecScript {
 	
 	/**
 	 * Gets a string with command line options to launch a pgsql executable (ie psql,createdb etc..)
-	 * with options based on the values of logicalDbName and the properteis hash for this object.
+	 * with options based on the values of logicalDbName and the properties hash for this object.
 	 *  
 	 * @param environmentAdditions An array list that will have environment entries 
 	 * @return
 	 */
-	protected ShellExecScript.CommandOptions getPgCommandOptions(boolean useSlonyUser)  {
+	protected CommandOptions getPgCommandOptions(boolean useSlonyUser)  {
 		
 		CommandOptions result = new CommandOptions();
 		

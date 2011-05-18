@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 public class DropDbScript extends PgCommand {
 	private String logicalDbName;
 	private Properties properties;
-	
 	private static Logger log = Logger.getLogger(CreateDbScript.class);
 	
 	
@@ -33,7 +32,7 @@ public class DropDbScript extends PgCommand {
 		
 	}
 	
-	protected ShellExecScript.CommandOptions getExecutablePath() {
+	protected CommandOptions getExecutablePath() {
 		ArrayList<String> path = new ArrayList<String>();
 		String tmp = properties.getProperty("database." + logicalDbName + ".pgsql.path");
 		if(tmp==null) {
@@ -46,7 +45,7 @@ public class DropDbScript extends PgCommand {
 		}
 		
 		
-		ShellExecScript.CommandOptions options = getPgCommandOptions(true);
+		CommandOptions options = getPgCommandOptions(true);
 		for(int idx=0; idx < options.commandOptions.length; idx++) {
 			path.add(options.commandOptions[idx]);
 		}

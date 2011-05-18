@@ -46,6 +46,7 @@
       <javac srcdir="src" destdir="build/classes"  classpathref="classpath" includeantruntime="false" >
 	<include name="info/slony/clustertest/testcoordinator/**" />
         <compilerarg value="-Xlint"/>
+        <compilerarg value="-g"/>
       </javac>
       <copy toDir="build/classes/info/slony/clustertest/testcoordinator" flatten="false" >
 	<fileset dir="src/info/slony/clustertest/testcoordinator">

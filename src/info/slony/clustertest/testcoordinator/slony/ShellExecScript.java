@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -21,7 +20,11 @@ import org.apache.log4j.NDC;
  * The ShellExecScript class is an an abstract base class for classes that
  * handle calling sub process (via exec) to perform actions as part of a test.
  * 
- * 
+ * Classes that derive from ShellExecScript need to provide
+ * \li A writeInput method that sends output to the stdin of the process
+ *     being invoked.
+ * \li A getExecutablePath method that returns the path along with command line
+ *     arguments to invoke.
  *
  */
 public abstract class ShellExecScript implements EventSource {
@@ -70,16 +73,6 @@ public abstract class ShellExecScript implements EventSource {
 		public void processLine(String line);
 	}
 	
-	/**
-	 * A data structure used to return information about the command line 
-	 *  and the environment for the shell command.
-	 * 
-	 *
-	 */
-	protected class CommandOptions {
-		public String[] commandOptions;
-		public String[] environment;
-	}
 	
 
 	/**

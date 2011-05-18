@@ -3,15 +3,15 @@ package info.slony.clustertest.testcoordinator.slony;
 import info.slony.clustertest.testcoordinator.Coordinator;
 import info.slony.clustertest.testcoordinator.Event;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Map;
-import java.io.FileWriter;
 
 import org.apache.log4j.Logger;
 
@@ -125,7 +125,7 @@ public class SlonLauncher extends ShellExecScript {
 						
 	
 	@Override
-	protected ShellExecScript.CommandOptions getExecutablePath()
+	protected CommandOptions getExecutablePath()
 	throws IOException {
 		String slonPath = properties.getProperty("slon.path");
 		ArrayList<String> resultBuilder = new ArrayList<String>();
@@ -197,7 +197,7 @@ public class SlonLauncher extends ShellExecScript {
 		   
 		
 		resultBuilder.add(connInfo.toString());
-		ShellExecScript.CommandOptions options = new ShellExecScript.CommandOptions();
+		CommandOptions options = new CommandOptions();
 		options.commandOptions = resultBuilder.toArray(new String[resultBuilder.size()]);
 		return options;
 		

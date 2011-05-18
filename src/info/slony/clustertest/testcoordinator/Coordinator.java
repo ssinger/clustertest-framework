@@ -1,5 +1,7 @@
 package info.slony.clustertest.testcoordinator;
 
+import info.slony.clustertest.testcoordinator.pgsql.InitDatabase;
+import info.slony.clustertest.testcoordinator.pgsql.Postmaster;
 import info.slony.clustertest.testcoordinator.script.ClientScript;
 import info.slony.clustertest.testcoordinator.script.ClientWorkerServer;
 import info.slony.clustertest.testcoordinator.script.ExecutionObserver;
@@ -472,6 +474,17 @@ public class Coordinator {
 		return logShipping;
 		
 	}
+	public InitDatabase createInitDatabase(String logicalDbName) {
+		InitDatabase initCommand = new InitDatabase(logicalDbName,this,properties,"initdb." + logicalDbName);
+		shellProcesses.add(initCommand);
+		return initCommand;
+	}
+	public Postmaster createPostmaster(String logicalDbName,File dataDirectory) {
+		Postmaster postmaster = new Postmaster(logicalDbName,this,properties,"postgres." + logicalDbName,dataDirectory);
+		shellProcesses.add(postmaster);
+		return postmaster;
+	}
+	
 	
 	/**
 	 * 

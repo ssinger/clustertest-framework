@@ -1,18 +1,11 @@
 package info.slony.clustertest.testcoordinator.slony;
 
 import info.slony.clustertest.testcoordinator.Coordinator;
-import info.slony.clustertest.testcoordinator.Event;
-import info.slony.clustertest.testcoordinator.EventSource;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Properties;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 
@@ -133,13 +126,13 @@ public class SlonikScript extends ShellExecScript {
 		scriptWriter.close();
 	}
 	
-	protected ShellExecScript.CommandOptions getExecutablePath() {
+	protected CommandOptions getExecutablePath() {
 		String path[] =  new String[]{properties.getProperty("slonik.path")};
 		if (path == null) {
 			log.error("slonik.path is not set in the properties file");
 			return null;
 		}
-		ShellExecScript.CommandOptions options = new ShellExecScript.CommandOptions();
+		CommandOptions options = new CommandOptions();
 		options.commandOptions = path;
 		return options;
 	}
