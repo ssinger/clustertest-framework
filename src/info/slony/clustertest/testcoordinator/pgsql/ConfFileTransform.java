@@ -70,6 +70,29 @@ public class ConfFileTransform {
 
 	}
 	
+	public void setHotStandby() 
+	{
+		Pattern standbyMode = Pattern.compile("#?wal_level =.*");
+		Matcher matcher = standbyMode.matcher(configurationBuffer);
+		configurationBuffer=matcher.replaceAll("wal_level=hot_standby\n");
+		
+		Pattern walSenders = Pattern.compile("#?max_wal_senders =.*");
+		Matcher matcher2 = walSenders.matcher(configurationBuffer);
+		configurationBuffer=matcher2.replaceAll("max_wal_senders =2\n");
+		
+		Pattern hotStandby = Pattern.compile("#?hot_standby =.*");
+		Matcher matcher3 = hotStandby.matcher(configurationBuffer);
+		configurationBuffer=matcher3.replaceAll("hot_standby =on\n");
+		
+	}
+	
+	public void setArchiveCommand(String archiveCommand)
+	{
+		Pattern standbyMode = Pattern.compile("#?archive_command =.*");
+		Matcher matcher = standbyMode.matcher(configurationBuffer);
+		matcher.replaceAll("archive_command =" + archiveCommand+"\n");
+	}
+	
 	/**
 	 * This method will rewrite the postgresql.conf file after the transforms
 	 * have been made.

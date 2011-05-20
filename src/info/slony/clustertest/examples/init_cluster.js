@@ -7,32 +7,23 @@
  *
  * coordinator and properties are global variables passed into the context by clustertest 
  */
+coordinator.includeFile('src/info/slony/clustertest/examples/StreamingRepBase.js');
+
+Example1=function(coordinator,results) {
+	StreamingRepBase.call(this,coordinator,results);
+	
+} 
+Example1.prototype=new StreamingRepBase();
+Example1.prototype.constructor=Example1;
  
- results.newGroup('example1');
-var initcluster = coordinator.createInitDatabase("test1");
-initcluster.run();
-coordinator.join(initcluster);
-var retCode = initcluster.getReturnCode();
-var dataDirectory = initcluster.getDataDirectory();
+results.newGroup('example1');
+var example1=new Example1(coordinator,results);
+example1.initCluster();
+example1.setupSlave();
+var postgres1 = example1.startMaster();
 
-results.assertCheck('initdb returned okay',retCode,0); 
-var confFileTransform = new Packages.info.slony.clustertest.testcoordinator.pgsql.ConfFileTransform("test1",
-		new java.io.File(dataDirectory,"postgresql.conf"),properties);
-confFileTransform.setPort();		
-confFileTransform.rewriteConfFile();
-
-// create a db.
-var copyArray=["cp","-r", dataDirectory.getAbsolutePath(),dataDirectory.getAbsolutePath()+".slave"];
-var copyProcess=java.lang.Runtime.getRuntime().exec(copyArray);
-copyProcess.waitFor();
-var postgres1 = coordinator.createPostmaster("test1",dataDirectory);
-postgres1.run();
-
-var dataDirectorySlave = new java.io.File(dataDirectory.getAbsolutePath()+".slave");
-var slaveConfFileTransform =new Packages.info.slony.clustertest.testcoordinator.pgsql.ConfFileTransform("test2",
-		new java.io.File(dataDirectorySlave,"postgresql.conf"),properties); 
-slaveConfFileTransform.setPort();
-slaveConfFileTransform.rewriteConfFile();
-var postgres2 = coordinator.createPostmaster("test2",dataDirectorySlave);
+var postgres2 = coordinator.createPostmaster("test2",example1.dataDirectorySlave);
 postgres2.run();
 coordinator.join(postgres2);
+postgres1.stop();
+coordinator.join(postgres1);
