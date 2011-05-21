@@ -70,6 +70,12 @@ public class ConfFileTransform {
 
 	}
 	
+	public void setDebug() {
+		Pattern minMessagePattern = Pattern.compile("#?log_min_messages =.*");
+		Matcher matcher = minMessagePattern.matcher(configurationBuffer);
+		configurationBuffer=matcher.replaceAll("log_min_messages = debug3");
+	}
+	
 	public void setHotStandby() 
 	{
 		Pattern standbyMode = Pattern.compile("#?wal_level =.*");
@@ -83,6 +89,10 @@ public class ConfFileTransform {
 		Pattern hotStandby = Pattern.compile("#?hot_standby =.*");
 		Matcher matcher3 = hotStandby.matcher(configurationBuffer);
 		configurationBuffer=matcher3.replaceAll("hot_standby =on\n");
+		
+		Pattern syncStandby = Pattern.compile("#?synchronous_standby_names =.*");
+		Matcher matcher4 = syncStandby.matcher(configurationBuffer);
+		configurationBuffer=matcher4.replaceAll("synchronous_standby_names=test2");		
 		
 	}
 	

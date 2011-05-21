@@ -61,6 +61,7 @@ StreamingRepBase.prototype.setupSlave=function() {
 		new java.io.File(this.dataDirectorySlave,"postgresql.conf"),properties); 
 	slaveConfFileTransform.setPort();
 	slaveConfFileTransform.setHotStandby();
+	slaveConfFileTransform.setDebug();
 	slaveConfFileTransform.rewriteConfFile();
 	var recoveryFile = new java.io.File(this.dataDirectorySlave,"recovery.conf");
 	var recoveryWriter = new java.io.FileWriter(recoveryFile);
@@ -68,7 +69,7 @@ StreamingRepBase.prototype.setupSlave=function() {
 	var port = properties.getProperty("database.test1.port");
 	var masterUser=properties.getProperty("database.test1.superuser");
 	var masterPass=properties.getProperty("database.test1.superuser.password");
-	recoveryWriter.write("primary_conninfo='host=localhost port=" + port + " user=" + masterUser+" password=" + masterPass+"'\n");
+	recoveryWriter.write("primary_conninfo='host=localhost port=" + port + " user=" + masterUser+" password=" + masterPass+" application_name=test2'\n");
 	recoveryWriter.write("restore_command='cp " + this.archiveDirectory.getAbsolutePath() + "/%f %p'\n");
 	recoveryWriter.close();
 	
@@ -85,7 +86,7 @@ StreamingRepBase.prototype.startSlave=function() {
 	return postgres1;
 }
 
-StreamingRepBase.prototype.setupDb=function {
+StreamingRepBase.prototype.setupDb=function() {
 	 var createDb = this.coordinator.createCreateDb('test1');
 	 createDb.run();
 	 this.coordinator.join(createDb);
