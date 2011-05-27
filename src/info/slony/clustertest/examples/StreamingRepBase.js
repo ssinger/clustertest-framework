@@ -91,3 +91,57 @@ StreamingRepBase.prototype.setupDb=function() {
 	 createDb.run();
 	 this.coordinator.join(createDb);
 }
+
+StreamingRepBase.prototype.seedData = function(scaling) {
+	this.coordinator.log("Seeding data with scaling " + scaling + " - begin");
+	var populatePsql = this.coordinator.createPsqlCommand('test1',
+			'SET SEARCH_PATH=disorder,public; SELECT disorder.populate(' + scaling + ');');
+	populatePsql.run();
+	this.coordinator.log("Seeding data with scaling " + scaling + " - complete");
+	return populatePsql;
+}
+
+
+StreamingRepBase.prototype.generateLoad = function(set_origin) {
+
+    this.coordinator.log("StreamingRepBase.prototype.generateLoad - origin[" + set_origin + "] - start");
+	var disorderClientJs = this.coordinator.readFile('src/info/slony/clustertest/examples/disorder.js');
+	disorderClientJs+= this.coordinator.readFile('src/info/slony/clustertest/examples/run_fixed_load.js');
+	var load = this.coordinator.clientScript(disorderClientJs,set_origin);
+	load.run();
+    this.coordinator.log("StreamingRepBase.prototype.generateLoad - origin[" + set_origin + "] - complete");
+	return load;
+}
+
+/**
+ * Wait until the replication slave is caught up to the master.
+ * 
+ */
+StreamingRepBase.prototype.sync=function(slave) {
+	var jdbcCon1 = this.coordinator.createJdbcConnection('test1');
+	var stat1 = jdbcCon1.createStatement();
+	var rs1 = stat1.executeQuery("select write_location from pg_stat_replication where application_name='"
+		+ slave+"'");
+	var position=-1;
+	while(position==-1) {
+	 	if(rs1.next()) {
+	 		position=rs1.getString(1);
+	 	}
+	 }
+	 rs1.close();
+	 var caught_up=false;
+	 while(caught_up) {
+	 	var rs2=stat1.executeQuery("select replay_location from pg_stat_replication where application_name='" 
+	 		+ slave+"'");
+	 	if(rs2.next()) {
+	 		var replay_position=rs2.getString(1);
+	 		caught_up = replay_position >= position;
+	 	}
+	 	rs2.close();	
+	 }
+	 //now loop until it 
+	 stat1.close();
+	 jdbcCon1.close();
+	 
+	 
+}

@@ -23,6 +23,11 @@ Example1.prototype.createTables=function() {
 	psql1.run();
 	this.coordinator.join(psql1);
 	this.results.assertCheck('createTables - psql1 worked',0,psql1.getReturnCode());
+	
+	var seed=example1.seedData(10);
+	this.coordinator.join(seed);
+	results.assertCheck('seed finished okay',seed.getReturnCode(),0);
+	
 	var sql2 = this.coordinator.readFile('src/info/slony/clustertest/examples/disorder-2.sql');
 	var psql2 = this.coordinator.createPsqlCommand("test1",sql2);
 	psql2.run();
@@ -80,13 +85,18 @@ java.lang.Thread.sleep(10*1000);
 example1.setupDb();
 example1.createTables();
 
+var load = example1.generateLoad('test1');
+java.lang.Thread.sleep(60*1000);
+load.stop();
+this.coordinator.join(load);
+
 //We wait for the standby to be caught up
 //synchronous replication does not actually mean
 //that the data is visible on the slave when the
 //data has committed on the master.
-java.lang.Thread.sleep(10*1000);
+example1.sync('test2');
 example1.compareDb('test1','test2');
-
+postgres2.stop();
 coordinator.join(postgres2);
 postgres1.stop();
 
