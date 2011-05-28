@@ -17,6 +17,13 @@ Example1=function(coordinator,results) {
 Example1.prototype=new StreamingRepBase();
 Example1.prototype.constructor=Example1;
 
+/**
+ * Create the the disorder tables and seed them with initial data.
+ * The procedure for setting up/seeeding disorder is 
+ *  1. run disorder-1.sql
+ *  2. Invoke the poulate() function
+ *  3. Run disorder-2.sql to setup fkey's etc...
+ */
 Example1.prototype.createTables=function() {
 	var sql1 = this.coordinator.readFile('src/info/slony/clustertest/examples/disorder-1.sql');
 	var psql1 = this.coordinator.createPsqlCommand("test1",sql1);
@@ -36,6 +43,10 @@ Example1.prototype.createTables=function() {
 	
 }
 
+/**
+ * This function compares the contents of some disorder tables between two database
+ * instances.
+ */
 Example1.prototype.compareDb=function(lhs_db, rhs_db) {
 	//Compare the results.
     this.coordinator.log("BasicTest.prototype.compareDb ["+lhs_db + ","+rhs_db + "] - begin");
@@ -71,6 +82,76 @@ Example1.prototype.compareDb=function(lhs_db, rhs_db) {
         this.coordinator.log("BasicTest.prototype.compareDb ["+lhs_db + ","+rhs_db + "] - complete");
 }
 
+/**
+ * This tests the cancellation/conflict functionality with streaming rep.
+ * We open up a transaction on the slave that accesses the do_inventory table.
+ * We then run some load, which should alter the inventory table.
+ * as this load is running we validate that the number of orders on the master
+ * increases.  This shows that the load doesn't get stopped.
+ * 
+ * Then we verify that the transaction we started earlier was aborted/cancelled.
+ *
+ */
+Example1.prototype.testOpenTxn=function()
+{
+	// Open a txn on the slave.
+	// read the entire items table.
+	// This should eventually stop the slave from updating since it can't
+	// apply rows.
+	//
+	var load = this.generateLoad('test1');
+	
+	var slaveCon = this.coordinator.createJdbcConnection('test2');
+	slaveCon.setAutoCommit(false);
+	var slaveStat = slaveCon.createStatement();
+	var rs = slaveStat.executeQuery("select * FROM disorder.do_inventory");
+	
+	/**
+	 * for 5 minutes check every 10 seconds that the number of orders are the master
+	 * is increasing.
+	 */
+	 var iterations=5*6;
+	 var idx=0;
+	 var masterCon = this.coordinator.createJdbcConnection('test1');
+	 var masterStat = masterCon.createStatement();
+	 var lastCount=0;
+	 while(idx < iterations) {
+	 	java.lang.Thread.sleep(10*1000);
+	 	var countRS=masterStat.executeQuery("select count(*) FROM disorder.do_order");
+	 	countRS.next();
+	 	var count=countRS.getInt(1);
+	 	this.results.assertCheck('count is increasing', count>lastCount,true);
+	 	lastCount=count;
+	 	countRS.close();
+	 	masterStat.execute("vacuum disorder.do_inventory");
+	 	idx++;
+	 }
+	 //
+	 // At this point we expect the slave to have been cancelled.
+	 try {
+		rs.close();
+		rs = slaveStat.executeQuery("select count(*) FROM disorder.do_inventory");
+		while(rs.next()) {
+			var i = rs.getInt(1);
+		}
+		this.results.assertCheck("exception caught as expected",true,false);
+		rs.close();	 
+	 }
+	 catch(e) {
+	 	this.results.assertCheck("exception caught as expected",true,true);
+	 	rs.close();
+	 }
+	 masterStat.close();
+	 slaveStat.close();
+	 masterCon.close();
+	 slaveCon.close();
+	 load.stop();
+	 this.coordinator.join(load);
+}
+
+
+//
+// The test script starts here.
  
 results.newGroup('example1');
 var example1=new Example1(coordinator,results);
@@ -85,8 +166,11 @@ java.lang.Thread.sleep(10*1000);
 example1.setupDb();
 example1.createTables();
 
+//We generate some load in the background.
 var load = example1.generateLoad('test1');
 java.lang.Thread.sleep(60*1000);
+
+//Stop the load.
 load.stop();
 this.coordinator.join(load);
 
@@ -96,6 +180,9 @@ this.coordinator.join(load);
 //data has committed on the master.
 example1.sync('test2');
 example1.compareDb('test1','test2');
+
+example1.testOpenTxn();
+
 postgres2.stop();
 coordinator.join(postgres2);
 postgres1.stop();
